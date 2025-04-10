@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-sans;
+}
+
+/* full calendar CSS  */
+
+.fc .fc-button {
+  @apply bg-violet-400 text-white border-none rounded px-3 py-2 text-sm hover:bg-violet-500 transition-colors duration-300;
+}
+
+.fc .fc-button-primary {
+  @apply bg-violet-500 hover:bg-violet-600;
+}
+
+.fc .fc-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
