@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ export default function Signup() {
     setError(""); // 입력 시 에러 메시지 초기화
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const { username, email, password, confirmPassword } = formData;
@@ -30,14 +31,37 @@ export default function Signup() {
       return;
     }
 
-    console.log("회원가입 정보:", formData);
-    alert("회원가입 완료! 콘솔을 확인해주세요.");
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/users/register",
+        {
+          username,
+          email,
+          password,
+        }
+      );
+
+      alert("회원가입 완료!");
+      console.log("회원가입 성공:", response.data);
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "회원가입 중 오류가 발생했습니다.";
+      setError(errorMessage);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-violet-400 mb-6 text-center">회원가입</h2>
+        <h2 className="text-2xl font-bold text-violet-400 mb-6 text-center">
+          회원가입
+        </h2>
 
         {error && (
           <div className="mb-4 text-red-500 text-sm text-center">{error}</div>
