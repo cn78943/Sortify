@@ -195,12 +195,23 @@ export default function Todos() {
             날짜를 클릭해서 일정을 등록하세요.
           </p>
           <ul className="mt-4 space-y-2">
-            {events.map((event, idx) => (
-              <li key={idx} className="text-sm text-gray-900">
-                📌 {event.title} (
-                {new Date(event.start as string).toLocaleDateString()} )
-              </li>
-            ))}
+            {events
+              .filter((event) => {
+                const today = new Date();
+                const eventDate = new Date(event.start as string);
+
+                return (
+                  eventDate.getFullYear() === today.getFullYear() &&
+                  eventDate.getMonth() === today.getMonth() &&
+                  eventDate.getDate() === today.getDate()
+                );
+              })
+              .map((event, idx) => (
+                <li key={idx} className="text-sm text-gray-900">
+                  📌 {event.title} (
+                  {new Date(event.start as string).toLocaleDateString()} )
+                </li>
+              ))}
           </ul>
         </div>
       </div>
