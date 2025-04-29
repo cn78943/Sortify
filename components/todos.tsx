@@ -16,7 +16,8 @@ export default function Todos() {
     recurring: false,
     recurringDays: [] as string[],
     repeatUntil: "",
-    toDo: "",
+    toDoInput: "",
+    toDos: [] as string[],
   });
 
   const handleDateClick = (arg: any) => {
@@ -47,7 +48,23 @@ export default function Todos() {
     }
   };
 
-  // 일정 추가하기
+  const handleAddToDo = () => {
+    if (formData.toDoInput.trim() === "") return;
+
+    setFormData((prev) => ({
+      ...prev,
+      toDos: [...prev.toDos, prev.toDoInput],
+      toDoInput: "",
+    }));
+  };
+
+  const handleRemoveToDo = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      toDos: prev.toDos.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) return alert("로그인이 필요합니다.");
@@ -61,13 +78,11 @@ export default function Todos() {
       repeatUntil: formData.recurring
         ? `${formData.repeatUntil}T23:59:59`
         : null,
-      toDos: [
-        {
-          task: formData.toDo,
-          completed: false,
-          createdAt: new Date().toISOString(),
-        },
-      ],
+      toDos: formData.toDos.map((todo) => ({
+        task: todo,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      })),
     };
 
     try {
@@ -100,7 +115,8 @@ export default function Todos() {
         recurring: false,
         recurringDays: [],
         repeatUntil: "",
-        toDo: "",
+        toDoInput: "",
+        toDos: [],
       });
     } catch (error) {
       console.error("일정 등록 실패:", error);
@@ -108,7 +124,6 @@ export default function Todos() {
     }
   };
 
-  // 일정 가져오기
   const fetchSchedules = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -137,12 +152,11 @@ export default function Todos() {
   useEffect(() => {
     fetchSchedules();
   }, []);
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] relative">
-      {/* 📅 캘린더 영역 */}
       <div className="flex justify-center items-start py-[5%] mx-auto gap-6 px-4 min-h-full w-screen">
         <div className="w-4/5 h-full bg-white shadow-lg rounded-lg p-4 relative">
-          {/* 사이드바 */}
           <div
             className={`absolute top-0 ${
               sidebarOpen ? "left-0" : "-left-72"
@@ -188,7 +202,6 @@ export default function Todos() {
           />
         </div>
 
-        {/* 오른쪽 할 일 영역 */}
         <div className="w-1/5 bg-indigo-100 shadow-lg rounded-lg p-4">
           <h2 className="text-xl font-bold mb-4 text-violet-700">오늘 할 일</h2>
           <p className="text-sm text-gray-700">
@@ -216,7 +229,6 @@ export default function Todos() {
         </div>
       </div>
 
-      {/* 📌 일정 등록 모달 */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
@@ -290,16 +302,42 @@ export default function Todos() {
               </>
             )}
 
-            <label className="block mb-4 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               할 일
-              <input
-                type="text"
-                name="toDo"
-                value={formData.toDo}
-                onChange={handleChange}
-                className="w-full mt-1 px-3 py-2 border rounded-md"
-              />
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  name="toDoInput"
+                  value={formData.toDoInput}
+                  onChange={handleChange}
+                  className="flex-1 px-3 py-2 border rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddToDo}
+                  className="px-3 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
+                >
+                  추가
+                </button>
+              </div>
             </label>
+
+            {formData.toDos.length > 0 && (
+              <ul className="mb-4 space-y-1 text-sm text-gray-800">
+                {formData.toDos.map((todo, index) => (
+                  <li key={index} className="flex justify-between items-center">
+                    <span>📌 {todo}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveToDo(index)}
+                      className="text-red-500 text-xs hover:underline"
+                    >
+                      삭제
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <div className="flex justify-end space-x-2">
               <button
