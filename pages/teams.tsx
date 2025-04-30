@@ -1,5 +1,5 @@
-import Teams from "../components/teams";
+import Teams from '../components/teams';
 
 export default function TeamPage() {
-  return <Teams />;
+    return <Teams />;
 }

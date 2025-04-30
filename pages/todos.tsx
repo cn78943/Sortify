@@ -1,5 +1,5 @@
-import Todos from "../components/todos";
+import Todos from '../components/todos';
 
 export default function TodoPage() {
-  return <Todos />;
+    return <Todos />;
 }
