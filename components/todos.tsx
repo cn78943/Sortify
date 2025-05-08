@@ -144,7 +144,11 @@ export default function Todos() {
                 start: schedule.startTime,
                 end: schedule.endTime,
                 allDay: true,
-                toDos: schedule.toDos ?? [],
+                toDos: (schedule.toDos ?? []).map((todo: any) => ({
+                    id: todo.id,
+                    task: todo.task,
+                    completed: todo.completed,
+                })),
             }));
 
             setEvents(fetchedEvents);
@@ -259,37 +263,31 @@ export default function Todos() {
                                                 <input
                                                     type="checkbox"
                                                     checked={todo.completed}
-                                                    onChange={() => {
-                                                        const updatedEvents = [
-                                                            ...events,
-                                                        ];
-                                                        updatedEvents[
-                                                            eventIdx
-                                                        ] = {
-                                                            ...updatedEvents[
-                                                                eventIdx
-                                                            ],
-                                                            toDos: updatedEvents[
-                                                                eventIdx
-                                                            ].toDos.map(
-                                                                (
-                                                                    t: any,
-                                                                    i: number
-                                                                ) =>
-                                                                    i ===
-                                                                    todoIdx
-                                                                        ? {
-                                                                              ...t,
-                                                                              completed:
-                                                                                  !t.completed,
-                                                                          }
-                                                                        : t
-                                                            ),
-                                                        };
-                                                        setEvents(
-                                                            updatedEvents
-                                                        );
-                                                    }}
+                                                    onChange={async () => {
+                                                        const updatedCompleted = !todo.completed;
+                                                        const token = localStorage.getItem('token');
+                                                        if (!token) return alert('로그인이 필요합니다.');
+                                                    
+                                                        try {
+                                                            await axios.patch(
+                                                                `http://localhost:8080/api/todos/${todo.id}/completed`,
+                                                                { completed: updatedCompleted },
+                                                                {
+                                                                    headers: {
+                                                                        Authorization: `Bearer ${token}`,
+                                                                        'Content-Type': 'application/json',
+                                                                    },
+                                                                    withCredentials: true,
+                                                                }
+                                                            );
+                                                    
+                                                            // 🔥 변경 후 fetchSchedules로 데이터 새로 불러오기
+                                                            await fetchSchedules();
+                                                        } catch (error) {
+                                                            console.error('완료 상태 변경 실패:', error);
+                                                            alert('할 일 완료 상태 변경에 실패했습니다.');
+                                                        }
+                                                    }}                                                    
                                                 />
                                             </li>
                                         )
