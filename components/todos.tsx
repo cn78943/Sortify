@@ -157,6 +157,73 @@ export default function Todos() {
         }
     };
 
+    const renderToDosForOffset = (offset: number) => {
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + offset);
+
+        return events
+            .filter((event) => {
+                const eventDate = new Date(event.start as string);
+                return (
+                    eventDate.getFullYear() === targetDate.getFullYear() &&
+                    eventDate.getMonth() === targetDate.getMonth() &&
+                    eventDate.getDate() === targetDate.getDate()
+                );
+            })
+            .flatMap((event) =>
+                (event as any).toDos?.map((todo: any, todoIdx: number) => (
+                    <li
+                        key={`${event.title}-${todoIdx}`}
+                        className="flex items-center justify-between"
+                    >
+                        <span
+                            className={
+                                todo.completed
+                                    ? 'line-through text-gray-500'
+                                    : ''
+                            }
+                        >
+                            📌 {todo.task}
+                        </span>
+                        <input
+                            type="checkbox"
+                            checked={todo.completed}
+                            onChange={async () => {
+                                const updatedCompleted = !todo.completed;
+                                const token = localStorage.getItem('token');
+                                if (!token)
+                                    return alert('로그인이 필요합니다.');
+
+                                try {
+                                    await axios.patch(
+                                        `http://localhost:8080/api/todos/${todo.id}/completed`,
+                                        { completed: updatedCompleted },
+                                        {
+                                            headers: {
+                                                Authorization: `Bearer ${token}`,
+                                                'Content-Type':
+                                                    'application/json',
+                                            },
+                                            withCredentials: true,
+                                        }
+                                    );
+                                    await fetchSchedules();
+                                } catch (error) {
+                                    console.error(
+                                        '완료 상태 변경 실패:',
+                                        error
+                                    );
+                                    alert(
+                                        '할 일 완료 상태 변경에 실패했습니다.'
+                                    );
+                                }
+                            }}
+                        />
+                    </li>
+                ))
+            );
+    };
+
     useEffect(() => {
         fetchSchedules();
     }, []);
@@ -176,19 +243,18 @@ export default function Todos() {
                         >
                             ← 닫기
                         </button>
-                        <h2 className="text-lg font-bold text-indigo-700 mb-4">
-                            🗓️ 일정
+                        <h2 className="text-lg font-bold text-indigo-700 mb-2">
+                            📌 오늘 할 일
                         </h2>
-                        <ul className="space-y-2 text-sm">
-                            <li className="hover:underline cursor-pointer">
-                                일정 관리
-                            </li>
-                            <li className="hover:underline cursor-pointer">
-                                설정
-                            </li>
-                            <li className="hover:underline cursor-pointer">
-                                로그아웃
-                            </li>
+                        <ul className="mb-4 space-y-1 text-sm text-gray-900">
+                            {renderToDosForOffset(0)}
+                        </ul>
+
+                        <h2 className="text-lg font-bold text-indigo-700 mb-2 mt-4">
+                            📌 내일 할 일
+                        </h2>
+                        <ul className="space-y-1 text-sm text-gray-900">
+                            {renderToDosForOffset(1)}
                         </ul>
                     </div>
 
@@ -264,30 +330,47 @@ export default function Todos() {
                                                     type="checkbox"
                                                     checked={todo.completed}
                                                     onChange={async () => {
-                                                        const updatedCompleted = !todo.completed;
-                                                        const token = localStorage.getItem('token');
-                                                        if (!token) return alert('로그인이 필요합니다.');
-                                                    
+                                                        const updatedCompleted =
+                                                            !todo.completed;
+                                                        const token =
+                                                            localStorage.getItem(
+                                                                'token'
+                                                            );
+                                                        if (!token)
+                                                            return alert(
+                                                                '로그인이 필요합니다.'
+                                                            );
+
                                                         try {
                                                             await axios.patch(
                                                                 `http://localhost:8080/api/todos/${todo.id}/completed`,
-                                                                { completed: updatedCompleted },
+                                                                {
+                                                                    completed:
+                                                                        updatedCompleted,
+                                                                },
                                                                 {
                                                                     headers: {
                                                                         Authorization: `Bearer ${token}`,
-                                                                        'Content-Type': 'application/json',
+                                                                        'Content-Type':
+                                                                            'application/json',
                                                                     },
-                                                                    withCredentials: true,
+                                                                    withCredentials:
+                                                                        true,
                                                                 }
                                                             );
-                                                    
+
                                                             // 🔥 변경 후 fetchSchedules로 데이터 새로 불러오기
                                                             await fetchSchedules();
                                                         } catch (error) {
-                                                            console.error('완료 상태 변경 실패:', error);
-                                                            alert('할 일 완료 상태 변경에 실패했습니다.');
+                                                            console.error(
+                                                                '완료 상태 변경 실패:',
+                                                                error
+                                                            );
+                                                            alert(
+                                                                '할 일 완료 상태 변경에 실패했습니다.'
+                                                            );
                                                         }
-                                                    }}                                                    
+                                                    }}
                                                 />
                                             </li>
                                         )
